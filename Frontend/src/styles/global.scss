@@ -1,0 +1,315 @@
+:root {
+  /* MindFulness Dark Theme - Default */
+  --bg: #0a0a0a;
+  --panel: #1a1a1a;
+  --panel-2: #0f0f0f;
+
+  /* Text colors */
+  --text: #ffffff;
+  --muted: #cccccc;
+  --text-secondary: #e0e0e0;
+
+  /* Brand accents - MindFulness colors */
+  --primary: #66b2b2;        /* MindFulness teal */
+  --primary-600: #4a9d9d;
+  --accent: #4a3a6a;         /* MindFulness purple */
+  --accent-600: #3d2f55;
+  --danger: #ef4444;
+
+  /* Background gradients */
+  --bg-grad-1: #1a1a1a;
+  --bg-grad-2: #0a0a0a;
+
+  /* Component tokens */
+  --button-bg: rgba(102, 178, 178, 0.1);
+  --button-text: #ffffff;
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --header-bg: rgba(26, 26, 26, 0.8);
+
+  /* Utility tokens */
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --radius: 12px;
+  --radius-lg: 16px;
+
+  /* Spacing scale */
+  --space-xs: 6px;
+  --space-sm: 10px;
+  --space-md: 16px;
+  --space-lg: 22px;
+  --space-xl: 28px;
+
+  /* Animation */
+  --transition: 0.3s ease;
+  --transition-fast: 0.2s ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 70%);
+  min-height: 100vh;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+a:hover {
+  color: var(--primary-600);
+}
+
+/* Layout helpers */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-xl);
+}
+
+.section {
+  padding: var(--space-xl) 0;
+}
+.section.tight {
+  padding: var(--space-md) 0;
+}
+
+.center {
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-md);
+}
+.grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.grid-4 {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Cards */
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  transition: transform var(--transition-fast), box-shadow var(--transition);
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Hero section */
+.hero {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: var(--space-md);
+  min-height: 46vh;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  color: var(--button-text);
+  background: var(--button-bg);
+  cursor: pointer;
+  transition: transform var(--transition-fast), 
+              box-shadow var(--transition),
+              background var(--transition),
+              border-color var(--transition);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+}
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-600));
+  color: #ffffff;
+  border: 1px solid var(--primary);
+}
+.btn.danger {
+  background: linear-gradient(135deg, #ff6363, #ff8b8b);
+  color: #0b1220;
+}
+.btn.ghost {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+}
+.btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+.btn.lg {
+  padding: 12px 18px;
+  font-size: 15px;
+}
+.btn.sm {
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+/* Forms */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(102, 178, 178, 0.2);
+}
+
+/* Slider styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: linear-gradient(90deg, var(--bg-grad-2), var(--bg-grad-1));
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-600), var(--primary));
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-600), var(--primary));
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+label {
+  display: block;
+  margin: 10px 0 6px;
+  color: var(--muted);
+}
+
+/* Pills */
+.pill {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-600));
+  border: 1px solid var(--primary);
+  color: #ffffff;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Header */
+.header {
+  background: var(--header-bg);
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 16px 24px;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.nav a {
+  margin-right: 14px;
+}
+
+/* Footer */
+.footer {
+  color: var(--muted);
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+/* Risk indicators */
+.risk-low {
+  color: var(--primary);
+}
+.risk-high {
+  color: var(--danger);
+}
+
+/* Modals */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  width: min(560px, 92vw);
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+  .container {
+    padding: var(--space-md);
+  }
+  .grid {
+    gap: var(--space-sm);
+  }
+}
