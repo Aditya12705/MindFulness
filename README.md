@@ -128,5 +128,3 @@ GEMINI_API_KEY=your_gemini_api_key
 ---
 
 **MindFulness**: An Application for Development of a Digital Mental Health and Psychological Support System for Students in Higher Education
-
-*By Team Verbose(0)*
