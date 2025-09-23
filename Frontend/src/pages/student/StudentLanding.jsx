@@ -22,26 +22,33 @@ export function StudentLanding() {
   }
 
   const getDynamicGreeting = () => {
-    if (studentLoggedIn) return "Welcome back! How are you feeling today?"
-    if (adminLoggedIn) return "Admin Dashboard - System Overview"
-    return "Find Peace of Mind"
+    if (studentLoggedIn) return <span style={{ 
+      fontStyle: 'italic',
+      color: '#1a365d',
+      textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+    }}>"Welcome back! How are you feeling today?"</span>
+    return <span style={{ 
+      fontStyle: 'italic',
+      color: '#1a365d',
+      textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+    }}>"Find Peace of Mind"</span>
   }
 
   const getDynamicDescription = () => {
     if (personalizedContent) {
-      return personalizedContent.message
+      return <span style={{ color: '#2d3748' }}>{personalizedContent.message}</span>
     }
     if (studentLoggedIn) {
-      return "Continue your mental health journey with personalized support and resources."
+      return <span style={{ color: '#2d3748' }}>"Continue your mental health journey with personalized support and resources."</span>
     }
-    return "Experience a new way of emotional support. Our AI companion is here to listen, understand, and guide you through life's journey."
+    return <span style={{ color: '#2d3748' }}>"Experience a new way of emotional support. Our AI companion is here to listen, understand, and guide you through life's journey."</span>
   }
 
   return (
     <div className={styles.hero} style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%)',
-      color: 'var(--text)'
+      color: '#2c3e50' /* Darker text for better contrast */
     }}>
       {/* Header */}
       <header className={styles.header} style={{
@@ -238,18 +245,10 @@ export function StudentLanding() {
                 </Link>
               ) : (
                 <Link to="/login?role=student" className={styles.primaryBtn}>
-                  Get Started
+                  Login
                 </Link>
               )}
-              {adminLoggedIn ? (
-                <Link to="/admin/dashboard" className={styles.secondaryBtn}>
-                  Admin Dashboard
-                </Link>
-              ) : (
-                <Link to="/login?role=admin" className={styles.secondaryBtn}>
-                  Admin Access
-                </Link>
-              )}
+              {/* Admin access removed from student landing page */}
             </div>
           </div>
         </section>
