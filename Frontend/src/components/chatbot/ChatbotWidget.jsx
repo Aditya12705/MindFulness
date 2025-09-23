@@ -44,9 +44,20 @@ export function ChatbotWidget() {
         <div className={styles.panel}>
           <div className={styles.header}>
             <span>MindFulness Chatbot</span>
-            <select value={lang} onChange={e=>{ setLang(e.target.value); setMessages([{ id: 1, from: 'bot', text: BOT_MESSAGES[e.target.value].hello }]) }} className={styles.lang}>
+            <select 
+              value={lang} 
+              onChange={e=>{ 
+                setLang(e.target.value); 
+                setMessages([{ id: 1, from: 'bot', text: BOT_MESSAGES[e.target.value].hello }]) 
+              }} 
+              className={styles.lang}
+              aria-label="Select language"
+            >
               <option value="en">English</option>
-              <option value="hi">Hindi</option>
+              <option value="hi">हिंदी (Hindi)</option>
+              <option value="ta">தமிழ் (Tamil)</option>
+              <option value="te">తెలుగు (Telugu)</option>
+              <option value="bn">বাংলা (Bengali)</option>
             </select>
           </div>
           <div className={styles.list} ref={listRef}>
