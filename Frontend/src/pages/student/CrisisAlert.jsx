@@ -4,19 +4,18 @@ export function CrisisAlert() {
   return (
     <div className="modal-backdrop">
       <div className="card modal">
-        <h2 className="risk-high">High Risk Detected</h2>
-        <p>Please contact emergency services or reach out immediately.</p>
+        <h2 className="risk-high">Immediate Support Available</h2>
+        <p>If you are in immediate danger, please call emergency services. Here are some resources that can help:</p>
         <ul>
-          <li>Campus Security: <strong>+91 12345 67890</strong></li>
-          <li>National Helpline: <strong>1800-599-0019</strong></li>
+          <li><strong>Campus Security:</strong> +91 12345 67890</li>
+          <li><strong>National Suicide Prevention Helpline:</strong> 1800-599-0019</li>
+          <li><strong>Mental Health Helpline:</strong> 080-46110007</li>
         </ul>
         <div style={{display:'flex', gap:10, justifyContent:'flex-end'}}>
-          <a className="btn danger" href="tel:18005990019">Call Now</a>
+          <a className="btn danger" href="tel:18005990019">Call National Helpline Now</a>
           <Link className="btn" to="/student/self-help">Back to Safety Resources</Link>
         </div>
       </div>
     </div>
   )
 }
-
-

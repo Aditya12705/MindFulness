@@ -18,7 +18,8 @@ import { OfflineCounselorSupport } from './pages/admin/OfflineCounselorSupport.j
 import { UpdatesNotification } from './pages/admin/UpdatesNotification.jsx'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import { MoodProvider } from './context/MoodContext.jsx'
-import { Login } from './pages/auth/Login.jsx'
+import Login from './pages/auth/Login.jsx'
+import Register from './pages/student/Register.jsx'
 import { ChatbotWidget } from './components/chatbot/ChatbotWidget.jsx'
 
 export default function App() {
@@ -26,12 +27,15 @@ export default function App() {
     <AuthProvider>
       <MoodProvider>
         <Routes>
+        {/* Public routes */}
         <Route index element={<StudentLanding />} />
-        <Route path="student" element={<StudentLanding />} />
         <Route path="login" element={<Login />} />
+        <Route path="student/register" element={<Register />} />
         
-        <Route element={<AppLayout />}> 
-          <Route path="student/dashboard" element={<StudentDashboard />} />
+        {/* Protected routes */}
+        <Route element={<AppLayout />}>
+          <Route path="student" element={<Navigate to="/student/dashboard" replace />} />
+          <Route path="student/dashboard" element={<RequireStudent><StudentDashboard /></RequireStudent>} />
           <Route path="student/assessment" element={<RequireStudent><Assessment /></RequireStudent>} />
           <Route path="student/crisis" element={<CrisisAlert />} />
           <Route path="student/support" element={<ChooseSupport />} />

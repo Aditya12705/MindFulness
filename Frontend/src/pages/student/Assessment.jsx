@@ -22,25 +22,43 @@ const gadQuestions = [
   'Feeling afraid as if something awful might happen'
 ]
 
+const ghqQuestions = [
+  'Been able to concentrate on whatever you’re doing?',
+  'Lost much sleep over worry?',
+  'Felt that you are playing a useful part in things?',
+  'Felt capable of making decisions about things?',
+  'Felt constantly under strain?',
+  'Felt you couldn’t overcome your difficulties?',
+  'Been able to enjoy your normal day-to-day activities?',
+  'Been able to face up to your problems?',
+  'Been feeling unhappy and depressed?',
+  'Been losing confidence in yourself?',
+  'Been thinking of yourself as a worthless person?',
+  'Felt reasonably happy, all things considered?'
+]
+
 export function Assessment() {
-  // Randomize mode: 'phq', 'gad', or 'both'
-  const [mode, setMode] = useState('both')
+  // Randomize mode: 'phq', 'gad', 'ghq', or 'all'
+  const [mode, setMode] = useState('all')
   useEffect(()=>{
-    const options = ['phq','gad','both']
+    const options = ['phq','gad','ghq', 'all']
     setMode(options[Math.floor(Math.random()*options.length)])
   }, [])
 
   const [phq, setPhq] = useState(Array(phqQuestions.length).fill(0))
   const [gad, setGad] = useState(Array(gadQuestions.length).fill(0))
+  const [ghq, setGhq] = useState(Array(ghqQuestions.length).fill(0))
   const [submitted, setSubmitted] = useState(false)
 
-  // Build a question queue. If mode is 'both', mix PHQ and GAD and shuffle order.
+  // Build a question queue. If mode is 'all', mix all and shuffle order.
   const queue = useMemo(()=>{
     const phqQ = phqQuestions.map((q,i)=>({ type:'phq', text:q, idx:i }))
     const gadQ = gadQuestions.map((q,i)=>({ type:'gad', text:q, idx:i }))
+    const ghqQ = ghqQuestions.map((q,i)=>({ type:'ghq', text:q, idx:i }))
     if (mode==='phq') return phqQ
     if (mode==='gad') return gadQ
-    const merged = [...phqQ, ...gadQ]
+    if (mode==='ghq') return ghqQ
+    const merged = [...phqQ, ...gadQ, ...ghqQ]
     // Shuffle
     for (let i=merged.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [merged[i],merged[j]]=[merged[j],merged[i]] }
     return merged
@@ -53,30 +71,37 @@ export function Assessment() {
   const answeredCount = useMemo(()=>{
     const a = phq.filter(v=>v!==undefined).length
     const b = gad.filter(v=>v!==undefined).length
+    const c = ghq.filter(v=>v!==undefined).length
     if (mode==='phq') return a
     if (mode==='gad') return b
-    return a+b
-  }, [mode, phq, gad])
+    if (mode==='ghq') return c
+    return a+b+c
+  }, [mode, phq, gad, ghq])
 
   const scorePhq = phq.reduce((a,b)=>a+b,0)
   const scoreGad = gad.reduce((a,b)=>a+b,0)
+  const scoreGhq = ghq.reduce((a,b)=>a+b,0)
+
 
   const modeLabel = useMemo(()=>{
-    if (mode==='both') return 'PHQ-9 + GAD-7'
-    return mode==='phq' ? 'PHQ-9' : 'GAD-7'
+    if (mode==='all') return 'PHQ-9 + GAD-7 + GHQ-12'
+    if (mode==='phq') return 'PHQ-9'
+    if (mode==='gad') return 'GAD-7'
+    return 'GHQ-12'
   }, [mode])
 
   function setAnswer(value){
     if (current.type==='phq') { setPhq(prev=>{ const n=[...prev]; n[current.idx]=value; return n }) }
-    else { setGad(prev=>{ const n=[...prev]; n[current.idx]=value; return n }) }
+    else if (current.type==='gad') { setGad(prev=>{ const n=[...prev]; n[current.idx]=value; return n }) }
+    else { setGhq(prev=>{ const n=[...prev]; n[current.idx]=value; return n }) }
   }
 
   function next(){ if (cursor < queue.length-1) setCursor(i=>i+1) }
   function prev(){ if (cursor>0) setCursor(i=>i-1) }
 
-  const selectedValue = current.type==='phq' ? phq[current.idx] : gad[current.idx]
-  const overall = scorePhq + scoreGad
-  const riskHigh = overall >= 20
+  const selectedValue = current.type==='phq' ? phq[current.idx] : (current.type === 'gad' ? gad[current.idx] : ghq[current.idx])
+  const overall = scorePhq + scoreGad + scoreGhq
+  const riskHigh = overall >= 35 // Adjusted for all three questionnaires
 
   return (
     <div className="grid" style={{gap:24}}>
@@ -93,7 +118,7 @@ export function Assessment() {
       {/* Interactive stepper */}
       <section className="card">
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-          <h3 style={{margin:0}}>{current.type === 'phq' ? 'PHQ-9' : 'GAD-7'}</h3>
+          <h3 style={{margin:0}}>{current.type.toUpperCase()}</h3>
           <span className="pill">Question {cursor+1} / {totalQuestions}</span>
         </div>
         <div style={{marginTop:12, fontSize:18}}>{current.text}</div>
@@ -121,16 +146,22 @@ export function Assessment() {
         </div>
       </section>
 
-      {mode!=='gad' && (
+      {mode!=='gad' && mode!=='ghq' && (
         <section className="card">
           <h3>PHQ-9 Summary</h3>
           <p>Total: {scorePhq}</p>
         </section>
       )}
-      {mode!=='phq' && (
+      {mode!=='phq' && mode!=='ghq' && (
         <section className="card">
           <h3>GAD-7 Summary</h3>
           <p>Total: {scoreGad}</p>
+        </section>
+      )}
+      {mode!=='phq' && mode!=='gad' && (
+        <section className="card">
+          <h3>GHQ-12 Summary</h3>
+          <p>Total: {scoreGhq}</p>
         </section>
       )}
 
@@ -147,5 +178,3 @@ export function Assessment() {
     </div>
   )
 }
-
-

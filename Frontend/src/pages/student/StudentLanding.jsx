@@ -38,29 +38,127 @@ export function StudentLanding() {
   }
 
   return (
-    <div className={styles.hero}>
+    <div className={styles.hero} style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%)',
+      color: 'var(--text)'
+    }}>
       {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.logo}>
-          <div className={styles.logoIcon}>
-            <div className={styles.logoHeart}>💚</div>
+      <header className={styles.header} style={{
+        background: 'var(--panel)',
+        boxShadow: 'var(--shadow-md)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
+        padding: '15px 0'
+      }}>
+        <div className={styles.logo} style={{
+          display: 'flex',
+          alignItems: 'center',
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '0 20px',
+          width: '100%',
+          justifyContent: 'space-between'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img 
+              src="/images/logo.png" 
+              alt="MindFulness Logo" 
+              style={{
+                height: '60px',
+                width: 'auto',
+                marginRight: '20px'
+              }}
+            />
+            <div>
+              <div style={{
+                fontSize: '24px',
+                fontWeight: '700',
+                background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>MindFulness</div>
+              <div style={{
+                color: 'var(--muted)',
+                fontSize: '14px',
+                marginTop: '4px'
+              }}>Your mental health Companion</div>
+            </div>
           </div>
-          <div>
-            <div className={styles.brand}>MindFulness</div>
-            <div className={styles.tagline}>Your mental health Companion</div>
-          </div>
+          <nav className={styles.nav} style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '20px'
+          }}>
+            <a href="#features" style={{
+              color: 'var(--text-secondary)',
+              textDecoration: 'none',
+              fontWeight: '500',
+              padding: '8px 12px',
+              borderRadius: 'var(--radius-sm)',
+              transition: 'var(--transition)',
+              '&:hover': {
+                color: 'var(--primary)',
+                backgroundColor: 'rgba(74, 137, 220, 0.1)'
+              }
+            }}>Features</a>
+            <a href="#about" style={{
+              color: 'var(--text-secondary)',
+              textDecoration: 'none',
+              fontWeight: '500',
+              padding: '8px 12px',
+              borderRadius: 'var(--radius-sm)',
+              transition: 'var(--transition)',
+              '&:hover': {
+                color: 'var(--primary)',
+                backgroundColor: 'rgba(74, 137, 220, 0.1)'
+              }
+            }}>About</a>
+            <a href="#support" style={{
+              color: 'var(--text-secondary)',
+              textDecoration: 'none',
+              fontWeight: '500',
+              padding: '8px 12px',
+              borderRadius: 'var(--radius-sm)',
+              transition: 'var(--transition)',
+              '&:hover': {
+                color: 'var(--primary)',
+                backgroundColor: 'rgba(74, 137, 220, 0.1)'
+              }
+            }}>Support</a>
+            <Link 
+              to="/login?role=student" 
+              style={{
+                background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
+                color: 'white',
+                padding: '10px 20px',
+                borderRadius: 'var(--radius-md)',
+                textDecoration: 'none',
+                fontWeight: '600',
+                transition: 'var(--transition)',
+                boxShadow: 'var(--shadow-sm)',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: 'var(--shadow-md)',
+                  background: 'linear-gradient(135deg, var(--primary-light), var(--primary))'
+                }
+              }}
+            >
+              Sign In
+            </Link>
+          </nav>
         </div>
-        <nav className={styles.nav}>
-          <a href="#features" className={styles.navLink}>Features</a>
-          <a href="#about" className={styles.navLink}>About MindFulness</a>
-          <a href="#support" className={styles.navLink}>Student Support</a>
-          <div className={styles.moonIcon}>🌙</div>
-          <Link to="/login?role=admin" className={styles.signInBtn}>Sign In</Link>
-        </nav>
       </header>
 
       {/* Main Content */}
-      <main className={styles.mainContent}>
+      <main className={styles.mainContent} style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '60px 20px',
+        width: '100%'
+      }}>
         {/* Hero Section */}
         <section className={styles.heroSection}>
           <div className={styles.heroContent}>

@@ -1,23 +1,48 @@
 :root {
-  /* MindFulness Dark Theme - Default */
-  --bg: #0a0a0a;
-  --panel: #1a1a1a;
-  --panel-2: #0f0f0f;
+  /* MindFulness Theme - Based on Logo Colors */
+  --bg: #f8f9fa;              /* Light background for better contrast */
+  --panel: #ffffff;           /* White panels for content areas */
+  --panel-2: #f1f3f5;         /* Slightly darker for layered elements */
+  --panel-3: #e9ecef;         /* For hover states and subtle backgrounds */
 
   /* Text colors */
-  --text: #ffffff;
-  --muted: #cccccc;
-  --text-secondary: #e0e0e0;
+  --text: #212529;            /* Dark text for better readability */
+  --muted: #6c757d;           /* Muted text for secondary information */
+  --text-secondary: #495057;  /* Slightly lighter than main text */
 
-  /* Brand accents - MindFulness colors */
-  --primary: #66b2b2;        /* MindFulness teal */
-  --primary-600: #4a9d9d;
-  --accent: #4a3a6a;         /* MindFulness purple */
-  --accent-600: #3d2f55;
-  --danger: #ef4444;
+  /* Brand accents - Derived from the logo */
+  --primary: #4a89dc;         /* Primary brand blue from logo */
+  --primary-light: #5d9cec;   /* Lighter shade for hover states */
+  --primary-dark: #3b7dd8;    /* Darker shade for active states */
+  
+  --secondary: #6c5ce7;       /* Secondary purple from logo */
+  --secondary-light: #7d6df0; /* Lighter shade */
+  --accent: #00b894;          /* Accent teal from logo */
+  --accent-light: #00cec9;    /* Lighter teal */
+  
+  /* Utility colors */
+  --success: #00b894;         /* Green for success states */
+  --warning: #fdcb6e;         /* Yellow for warnings */
+  --danger: #ff7675;          /* Red for errors/danger */
+  --info: #74b9ff;            /* Blue for information */
 
   /* Background gradients */
-  --bg-grad-1: #1a1a1a;
+  --bg-grad-1: #f8f9fa;      /* Light gradient start */
+  --bg-grad-2: #e9ecef;      /* Light gradient end */
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+  
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+  
+  /* Transitions */
+  --transition: all 0.2s ease-in-out;
   --bg-grad-2: #0a0a0a;
 
   /* Component tokens */

@@ -13,26 +13,108 @@ export function AdminDashboard() {
   const { adminLoggedIn, logoutAdmin } = useAuth()
   const navigate = useNavigate()
   return (
-    <div className={styles.dashboardContainer}>
-      <div className={styles.dashboardMain}>
+    <div className={styles.dashboardContainer} style={{
+      minHeight: '100vh',
+      background: 'var(--bg)',
+      color: 'var(--text)'
+    }}>
+      <div className={styles.dashboardMain} style={{
+        maxWidth: '1400px',
+        margin: '0 auto',
+        padding: '30px 20px',
+        width: '100%'
+      }}>
         <div className={styles.dashboardRoot}>
           
           {/* Header */}
-          <div className={styles.header}>
-            <div className={styles.headerContent}>
-              <div className={styles.headerLeft}>
-                <div className={styles.logo}>
-                  <div className={styles.logoIcon}>💚</div>
-                  <span>MindFulness Admin</span>
+          <div className={styles.header} style={{
+            background: 'var(--panel)',
+            boxShadow: 'var(--shadow-md)',
+            padding: '15px 0',
+            position: 'sticky',
+            top: 0,
+            zIndex: 1000
+          }}>
+            <div className={styles.headerContent} style={{
+              maxWidth: '1400px',
+              margin: '0 auto',
+              padding: '0 20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              width: '100%'
+            }}>
+              <div className={styles.headerLeft} style={{
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <div className={styles.logo} style={{
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  <img 
+                    src="/images/logo.png" 
+                    alt="MindFulness Logo"
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      objectFit: 'contain',
+                      marginRight: '15px'
+                    }}
+                  />
+                  <span style={{
+                    fontSize: '20px',
+                    fontWeight: '700',
+                    background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}>MindFulness Admin</span>
                 </div>
               </div>
-              <div className={styles.headerRight}>
-                <div className={styles.adminStatus}>
-                  <span className={styles.statusDot}></span>
+              <div className={styles.headerRight} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '20px'
+              }}>
+                <div className={styles.adminStatus} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: 'var(--text-secondary)',
+                  fontSize: '14px'
+                }}>
+                  <span className={styles.statusDot} style={{
+                    display: 'inline-block',
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--success)',
+                    boxShadow: '0 0 10px var(--success)'
+                  }}></span>
                   <span>Admin Online</span>
                 </div>
-                <button className={styles.logoutBtn} onClick={logoutAdmin}>
-                  Logout
+                <button 
+                  onClick={logoutAdmin}
+                  style={{
+                    background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 20px',
+                    borderRadius: 'var(--radius-md)',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    transition: 'var(--transition)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    '&:hover': {
+                      transform: 'translateY(-1px)',
+                      boxShadow: 'var(--shadow-md)'
+                    }
+                  }}
+                >
+                  <span>Logout</span>
                 </button>
               </div>
             </div>
