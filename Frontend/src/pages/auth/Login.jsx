@@ -1,26 +1,48 @@
-import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext.jsx'
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 export function Login() {
-  const { login } = useAuth()
-  const navigate = useNavigate()
-  const { search } = useLocation()
-  const params = new URLSearchParams(search)
-  const initialRole = params.get('role') === 'admin' ? 'admin' : 'student'
-  const [role, setRole] = useState(initialRole)
-  const [successMessage, setSuccessMessage] = useState(params.get('registered') ? 'Registration successful! Please log in.' : '')
+  const { login, loginAdmin } = useAuth();
+  const navigate = useNavigate();
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  const initialRole = params.get('role') === 'counselor' ? 'counselor' : 'student';
+  const [role, setRole] = useState(initialRole);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState(
+    params.get('registered') ? 'Registration successful! Please log in.' : ''
+  );
 
-  useEffect(() => { if (role !== initialRole) { /* allow change */ } }, [role, initialRole])
+  useEffect(() => { 
+    if (role !== initialRole) { 
+      // Update the URL when role changes
+      navigate(`/login?role=${role}`, { replace: true });
+    } 
+  }, [role, initialRole, navigate]);
 
-  function submit(e) {
-    e.preventDefault()
-    const form = new FormData(e.currentTarget)
-    const identity = form.get('identity')
-    const password = form.get('password')
-    login(role === 'admin' ? { username: identity, password } : { email: identity, password })
-      .then(() => navigate(role === 'admin' ? '/admin/dashboard' : '/student/dashboard'))
-      .catch(() => alert('Login failed'))
+  async function submit(e) {
+    e.preventDefault();
+    setError('');
+    
+    const form = new FormData(e.currentTarget);
+    const identity = form.get('identity');
+    const password = form.get('password');
+
+    try {
+      if (role === 'counselor') {
+        // Use loginAdmin for counselor authentication
+        await loginAdmin(identity, password);
+        navigate('/counselor/dashboard');
+      } else {
+        // Use regular login for students
+        await login({ email: identity, password });
+        navigate('/student/dashboard');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed. Please check your credentials.');
+    }
   }
 
   // Back button component to go to home page
@@ -144,13 +166,16 @@ export function Login() {
             color: 'var(--text)',
             marginBottom: '24px',
             textAlign: 'center'
-          }}>Welcome Back</h2>
+          }}>
+            {role === 'counselor' ? 'Counselor Sign In' : 'Student Sign In'}
+          </h2>
           
           <div style={{
             display: 'flex',
             gap: '12px',
             marginBottom: '24px',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            flexWrap: 'wrap'
           }}>
             <label style={{
               display: 'flex',
@@ -163,7 +188,8 @@ export function Login() {
               color: role === 'student' ? 'white' : 'var(--muted)',
               cursor: 'pointer',
               transition: 'var(--transition)',
-              fontWeight: '500'
+              fontWeight: '500',
+              flex: '0 0 auto'
             }}>
               <input 
                 type="radio" 
@@ -180,21 +206,22 @@ export function Login() {
               gap: '8px',
               padding: '10px 20px',
               borderRadius: 'var(--radius-full)',
-              background: role === 'admin' ? 'var(--primary)' : 'transparent',
-              border: `1px solid ${role === 'admin' ? 'var(--primary-dark)' : 'var(--border)'}`,
-              color: role === 'admin' ? 'white' : 'var(--muted)',
+              background: role === 'counselor' ? 'var(--primary)' : 'transparent',
+              border: `1px solid ${role === 'counselor' ? 'var(--primary-dark)' : 'var(--border)'}`,
+              color: role === 'counselor' ? 'white' : 'var(--muted)',
               cursor: 'pointer',
               transition: 'var(--transition)',
-              fontWeight: '500'
+              fontWeight: '500',
+              flex: '0 0 auto'
             }}>
               <input 
                 type="radio" 
                 name="role" 
-                checked={role === 'admin'} 
-                onChange={() => setRole('admin')}
+                checked={role === 'counselor'} 
+                onChange={() => setRole('counselor')}
                 style={{ display: 'none' }}
               />
-              Admin
+              Counselor
             </label>
           </div>
 
@@ -202,76 +229,58 @@ export function Login() {
             <label style={{
               display: 'block',
               marginBottom: '8px',
-              color: 'var(--text-secondary)',
               fontSize: '14px',
-              fontWeight: '500'
+              fontWeight: '500',
+              color: 'var(--text-secondary)'
             }}>
-              {role === 'admin' ? 'Username' : 'Email Address'}
+              {role === 'counselor' ? 'Username' : 'Email Address'}
             </label>
-            <input 
-              name="identity" 
-              required 
-              defaultValue={role === 'admin' ? 'admin' : 'student@university.edu'} 
-              placeholder={role === 'admin' ? 'username' : 'you@university.edu'} 
-              autoComplete={role === 'admin' ? 'username' : 'email'}
+            <input
+              type={role === 'counselor' ? 'text' : 'email'}
+              name="identity"
+              required
               style={{
                 width: '100%',
-                padding: '14px 16px',
+                padding: '12px 16px',
                 borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border, #d1d5db)',
-                backgroundColor: 'var(--input-bg, #ffffff)',
-                color: 'var(--text-primary, #111827)',
-                fontSize: '16px',
-                transition: 'all 0.2s ease',
-                outline: 'none',
-                '::placeholder': {
-                  color: 'var(--text-muted, #6b7280)',
-                  opacity: 1
-                },
-                ':focus': {
-                  borderColor: 'var(--primary, #4f46e5)',
-                  boxShadow: '0 0 0 3px rgba(79, 70, 229, 0.2)'
-                }
+                border: '1px solid var(--border)',
+                fontSize: '15px',
+                color: 'var(--text)',
+                backgroundColor: 'var(--panel)',
+                transition: 'var(--transition)'
               }}
+              placeholder={role === 'counselor' ? 'Enter your username' : 'you@university.edu'}
+              autoComplete={role === 'counselor' ? 'username' : 'email'}
+              defaultValue={role === 'counselor' ? '' : 'student@university.edu'}
             />
           </div>
 
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ marginBottom: '20px' }}>
             <label style={{
               display: 'block',
               marginBottom: '8px',
-              color: 'var(--text-secondary)',
               fontSize: '14px',
-              fontWeight: '500'
+              fontWeight: '500',
+              color: 'var(--text-secondary)'
             }}>
               Password
             </label>
-            <input 
-              name="password" 
-              type="password" 
-              required 
-              defaultValue="admin123" 
-              placeholder="••••••••" 
-              autoComplete="current-password"
+            <input
+              type="password"
+              name="password"
+              required
               style={{
                 width: '100%',
-                padding: '14px 16px',
+                padding: '12px 16px',
                 borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border, #d1d5db)',
-                backgroundColor: 'var(--input-bg, #ffffff)',
-                color: 'var(--text-primary, #111827)',
-                fontSize: '16px',
-                transition: 'all 0.2s ease',
-                outline: 'none',
-                '::placeholder': {
-                  color: 'var(--text-muted, #6b7280)',
-                  opacity: 1
-                },
-                ':focus': {
-                  borderColor: 'var(--primary, #4f46e5)',
-                  boxShadow: '0 0 0 3px rgba(79, 70, 229, 0.2)'
-                }
+                border: '1px solid var(--border)',
+                fontSize: '15px',
+                color: 'var(--text)',
+                backgroundColor: 'var(--panel)',
+                transition: 'var(--transition)'
               }}
+              placeholder="Enter your password"
+              autoComplete="current-password"
             />
           </div>
 

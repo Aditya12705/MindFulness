@@ -2,7 +2,6 @@ import { useState, useRef } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { MoodIndicator } from '../mood/MoodIndicator.jsx';
-import { ChatbotWidget } from '../chatbot/ChatbotWidget.jsx';
 import { useClickAway } from 'react-use';
 import styles from './AppLayout.module.scss';
 
@@ -68,10 +67,13 @@ export function AppLayout() {
   
   const getUserInitials = () => {
     if (!user) return 'U';
+    if (user.role === 'counselor' && user.name) {
+      return user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    }
     if (user.name) {
       return user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
     }
-    return user.role === 'admin' ? 'AD' : 'U';
+    return 'U';
   };
 
   const handleGoBack = () => {
@@ -101,12 +103,14 @@ export function AppLayout() {
             </Link>
           </div>
           <nav className={styles.navLinks}>
-            <NavLink to="/student/dashboard">Dashboard</NavLink>
-            <NavLink to="/student/support">Get Support</NavLink>
-            <NavLink to="/student/assessment">Assessment</NavLink>
+            {!adminLoggedIn && (
+              <>
+                <NavLink to="/student/dashboard">Dashboard</NavLink>
+              </>
+            )}
           </nav>
           <div className={styles.headerRight}>
-            <MoodIndicator compact={true} />
+            {!adminLoggedIn && <MoodIndicator compact={true} />}
             
             {studentLoggedIn || adminLoggedIn ? (
               <div className={styles['user-menu']}>
@@ -120,7 +124,7 @@ export function AppLayout() {
                     aria-expanded={dropdownOpen}
                     aria-haspopup="true"
                   >
-                    {user?.name || (adminLoggedIn ? 'Admin' : 'User')}
+                    {user?.name || (adminLoggedIn ? 'Counsellor' : 'User')}
                     <ChevronDown />
                   </button>
                   <div 
@@ -128,12 +132,12 @@ export function AppLayout() {
                     data-show={dropdownOpen ? 'true' : undefined}
                   >
                     <Link 
-                      to={adminLoggedIn ? '/admin/dashboard' : '/student/dashboard'} 
+                      to={adminLoggedIn ? '/admin/dashboard' : '/student/dashboard'}
                       className={styles['dropdown-item']}
                       onClick={() => setDropdownOpen(false)}
                     >
                       <UserIcon className={styles['btn-icon']} />
-                      {adminLoggedIn ? 'Admin Dashboard' : 'My Dashboard'}
+                      {adminLoggedIn ? 'Counsellor Dashboard' : 'My Dashboard'}
                     </Link>
                     <div className={styles.divider}></div>
                     <button 
@@ -161,12 +165,14 @@ export function AppLayout() {
       
       <main className={styles.main}>
         <div className={styles.contentWrapper}>
-          <div className={styles.contentArea}>
+          <div className={`${styles.contentArea} ${adminLoggedIn ? styles.adminContent : ''}`}>
             <Outlet />
           </div>
-          <aside className={styles.sidebar}>
-            <MoodIndicator showHistory={true} />
-          </aside>
+          {!adminLoggedIn && (
+            <aside className={styles.sidebar}>
+              <MoodIndicator showHistory={true} />
+            </aside>
+          )}
         </div>
       </main>
 
@@ -178,8 +184,6 @@ export function AppLayout() {
           <Link to="/contact">Contact</Link>
         </div>
       </footer>
-      
-      <ChatbotWidget />
     </div>
   );
 }

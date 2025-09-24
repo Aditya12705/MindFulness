@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { AdminCharts } from './AdminCharts.jsx';
+import { AnimatedBackground } from '../../components/layout/AnimatedBackground.jsx';
 import styles from './AdminDashboard.module.scss';
 
 export function AdminDashboard() {
-  const { logoutAdmin } = useAuth();
+  // ... (keep all existing functions and hooks)
+  const { logoutAdmin, user } = useAuth();
   const navigate = useNavigate();
 
   // Mock data for display purposes
@@ -21,26 +23,27 @@ export function AdminDashboard() {
     { icon: '📊', title: 'Assessment submitted', time: '10 minutes ago' },
   ];
 
-  const systemStatus = [
-    { name: 'API Server', status: 'Online' },
-    { name: 'Database', status: 'Online' },
-    { name: 'AI Service', status: 'Online' },
-    { name: 'Chat Service', status: 'Online' },
-  ];
 
   return (
     <div className={styles.dashboardContainer}>
+      <AnimatedBackground />
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <img src="/images/logo.png" alt="Logo" className={styles.logo} />
-          <h1>MindFulness Admin</h1>
+          <h1>MindFulness Counsellor Portal</h1>
         </div>
         <div className={styles.headerRight}>
           <div className={styles.adminStatus}>
             <span className={styles.statusDot}></span>
-            <span>Admin Online</span>
+            <span>Welcome, {user?.name || 'Counsellor'}</span>
           </div>
-          <button onClick={logoutAdmin} className={styles.logoutBtn}>
+          <button 
+            onClick={() => {
+              logoutAdmin();
+              navigate('/counselor/login');
+            }} 
+            className={styles.logoutBtn}
+          >
             Logout
           </button>
         </div>
@@ -132,20 +135,6 @@ export function AdminDashboard() {
             </div>
           </section>
 
-          <section className="card">
-            <div className={styles.cardHeader}>
-              <h3>System Status</h3>
-              <div className={styles.cardIcon}>🟢</div>
-            </div>
-            <div className={styles.statusList}>
-              {systemStatus.map((item, index) => (
-                <div key={index} className={styles.statusItem}>
-                  <span className={styles.statusLabel}>{item.name}</span>
-                  <span className={styles.statusValue}>{item.status}</span>
-                </div>
-              ))}
-            </div>
-          </section>
         </aside>
       </div>
     </div>

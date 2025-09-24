@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom';
+import { AnimatedBackground } from '../../components/layout/AnimatedBackground.jsx';
 import styles from './StudentDashboard.module.scss';
 
 export function StudentDashboard() {
   return (
     <div className={styles.dashboard}>
+      <AnimatedBackground />
+      {/* The rest of the JSX remains exactly the same */}
       <div className={styles.hero}>
         <div className={styles.heroContent}>
           <h1 className={styles.welcome}>Welcome back, Student! 👋</h1>
@@ -24,7 +27,6 @@ export function StudentDashboard() {
           </div>
         </div>
       </div>
-
       <div className={styles.grid}>
         <section className={`${styles.card} ${styles.actionsCard}`}>
           <div className={styles.cardHeader}>

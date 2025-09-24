@@ -5,6 +5,7 @@ export function CrisisAlert() {
     <div className="modal-backdrop">
       <div className="card modal">
         <h2 className="risk-high">Immediate Support Available</h2>
+        <p><em>"Find your peace of mind"</em></p>
         <p>If you are in immediate danger, please call emergency services. Here are some resources that can help:</p>
         <ul>
           <li><strong>Campus Security:</strong> +91 12345 67890</li>
