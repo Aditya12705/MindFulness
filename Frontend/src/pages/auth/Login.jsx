@@ -26,22 +26,40 @@ export function Login() {
     setError('');
     
     const form = new FormData(e.currentTarget);
-    const identity = form.get('identity');
+    const identity = form.get('identity').trim();
     const password = form.get('password');
 
     try {
       if (role === 'counselor') {
-        // Use loginAdmin for counselor authentication
+        // For counselor, use username only
         await loginAdmin(identity, password);
         navigate('/counselor/dashboard');
       } else {
-        // Use regular login for students
-        await login({ email: identity, password });
-        navigate('/student/dashboard');
+        // For student, try both email and username login
+        try {
+          // First try with email
+          await login({ email: identity, password });
+          navigate('/student/dashboard');
+        } catch (emailError) {
+          console.log('Email login failed, trying username...');
+          // If email login fails, try with username
+          await login({ username: identity, password });
+          navigate('/student/dashboard');
+        }
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Login failed. Please check your credentials.');
+      // Extract and display a more user-friendly error message
+      let errorMessage = 'Login failed. Please check your credentials.';
+      if (err.message && typeof err.message === 'string') {
+        try {
+          const errorData = JSON.parse(err.message);
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          errorMessage = err.message || errorMessage;
+        }
+      }
+      setError(errorMessage);
     }
   }
 

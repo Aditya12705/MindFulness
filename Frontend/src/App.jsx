@@ -42,6 +42,7 @@ function AppRoutes() {
         <Route path="student/assessment" element={<RequireStudent><Assessment /></RequireStudent>} />
         <Route path="student/crisis" element={<CrisisAlert />} />
         <Route path="student/support" element={<ChooseSupport />} />
+        <Route path="student/self-help" element={<RequireStudent><SelfHelp /></RequireStudent>} />
         <Route path="student/peer" element={<PeerSupport />} />
         <Route path="student/counselor" element={<Counselor />} />
         <Route path="student/feedback" element={<Feedback />} />

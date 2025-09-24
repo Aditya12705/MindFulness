@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import styles from './ChatbotWidget.module.scss';
-import { BOT_MESSAGES, detectLanguage, replyFor } from './botMessages.js';
+import { BOT_MESSAGES, detectLanguage } from './botMessages.js';
 import { AIAPI } from '../../services/api.js';
 
 export function ChatbotWidget() {
@@ -18,23 +18,36 @@ export function ChatbotWidget() {
     }
   }, [messages, open]);
 
-  function send() {
+  const send = async () => {
     const text = input.trim();
     if (!text) return;
-    setMessages(prev => [...prev, { id: prev.length + 1, from: 'you', text }]);
+    
+    // Add user's message to the state immediately
+    const userMessage = { id: Date.now(), from: 'you', text };
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
-    setTimeout(async () => {
+
+    // Prepare history for the API
+    const history = [...messages, userMessage].map(m => ({
+        role: m.from === 'you' ? 'user' : 'assistant',
+        content: m.text
+    })).slice(1); // Remove the initial greeting from history
+
+    try {
       const detected = detectLanguage(text) || lang;
-      try {
-        const ai = await AIAPI.chat({ messages: [{ role: 'user', content: text }], lang: detected });
-        setLang(detected);
-        setMessages(prev => [...prev, { id: prev.length + 1, from: 'bot', text: ai.reply }]);
-      } catch {
-        const fallback = replyFor(text, detected);
-        setLang(detected);
-        setMessages(prev => [...prev, { id: prev.length + 1, from: 'bot', text: fallback }]);
-      }
-    }, 200);
+      setLang(detected);
+
+      // Call the API with conversation history
+      const ai = await AIAPI.chat({ messages: history, lang: detected });
+
+      // Add the AI's response
+      setMessages(prev => [...prev, { id: Date.now() + 1, from: 'bot', text: ai.reply }]);
+
+    } catch (err) {
+      console.error("Chatbot API error:", err);
+      const fallbackMessage = "I'm having a little trouble connecting right now. Please try again in a moment.";
+      setMessages(prev => [...prev, { id: Date.now() + 1, from: 'bot', text: fallbackMessage }]);
+    }
   }
 
   const handleLangChange = (e) => {

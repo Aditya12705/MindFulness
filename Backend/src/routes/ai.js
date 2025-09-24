@@ -2,71 +2,91 @@ import { Router } from 'express'
 
 const router = Router()
 
-// POST /api/ai/chat  { messages: [{role:'user'|'system'|'assistant', content:string}], lang?:'en' }
 router.post('/chat', async (req, res) => {
-  const { messages = [], lang = 'en', model = 'gemini-1.5-flash-8b' } = req.body || {}
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) return res.status(500).json({ message: 'Missing GEMINI_API_KEY' })
+  const { messages = [], lang = 'en' } = req.body || {};
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ message: 'Missing GEMINI_API_KEY' });
+  }
 
-  // Build a prompt (simple, safe)
-  const system = 'You are MindFulness mental health assistant. Be supportive and VERY concise (max 2-3 sentences). Provide general wellbeing guidance, not medical diagnosis. If crisis is suspected, advise calling local helplines.'
-  const userText = messages.map(m=>`${m.role}: ${m.content}`).join('\n')
-  const prompt = `${system}\nLanguage: ${lang}\nConversation:\n${userText}\nassistant:`
+  // A more detailed system instruction for better, more empathetic responses
+  const systemInstruction = `You are MindFulness, a friendly and empathetic AI mental health companion for university students. Your goal is to be a supportive listener and provide helpful, general guidance in a conversational manner.
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+Your personality:
+- Warm, encouraging, and non-judgmental.
+- Patient and understanding.
+- Use a natural tone. You can use emojis where appropriate to convey warmth.
+
+Your capabilities:
+- Discuss feelings, stress, anxiety, and daily challenges.
+- Suggest general wellness techniques like mindfulness, breathing exercises, or journaling, and mention they can be found in the app's "Self-Help" section.
+- Provide encouragement and positive affirmations.
+
+**Crucial Safety Guidelines:**
+- **You are NOT a therapist.** Do not provide diagnoses, medical advice, or therapy.
+- **If the user expresses thoughts of self-harm, suicide, or being in immediate danger, you MUST gently interrupt and provide this EXACT response:** "It sounds like you are going through a lot right now, and your safety is most important. It's really important to talk to someone who can help right away. Please use the 'Crisis Alert' button in the app or call a local helpline immediately. You are not alone."
+- For other serious but non-imminent issues, gently guide them towards professional help by saying something like: "It sounds like this is really weighing on you. Talking to one of the university's professional counselors could provide you with dedicated support for this."
+
+Keep your responses supportive and helpful, but concise enough for a chat interface (2-4 sentences is ideal). Language: ${lang}.`;
+
+  // Format messages for the Gemini API
+  const contents = [
+    {
+      role: 'user',
+      parts: [{ text: systemInstruction }]
+    },
+    {
+      role: 'model',
+      parts: [{ text: "I understand. I'm ready to help." }]
+    },
+    ...messages.map(msg => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }))
+  ];
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
   const payload = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.4, maxOutputTokens: 128, topP: 0.9 },
+    contents,
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 256,
+      topP: 0.95
+    },
     safetySettings: [
       { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
       { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
       { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
       { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-      { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
     ],
-  }
+  };
 
-  // Retry with exponential backoff on 5xx/UNAVAILABLE
-  async function callWithRetry(attempt = 1) {
-    const controller = new AbortController()
-    const to = setTimeout(()=>controller.abort(), 12_000)
-    try {
-      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: controller.signal })
-      clearTimeout(to)
-      if (r.ok) {
-        const data = await r.json()
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '...'
-        return { ok: true, text }
-      }
-      const errText = await r.text()
-      if (r.status >= 500 && attempt < 3) {
-        await new Promise(res=>setTimeout(res, 300 * Math.pow(2, attempt)))
-        return callWithRetry(attempt + 1)
-      }
-      return { ok: false, status: r.status, text: errText }
-    } catch (e) {
-      clearTimeout(to)
-      if (attempt < 3) {
-        await new Promise(res=>setTimeout(res, 300 * Math.pow(2, attempt)))
-        return callWithRetry(attempt + 1)
-      }
-      return { ok: false, status: 500, text: String(e) }
+  try {
+    const apiResponse = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!apiResponse.ok) {
+      const errorText = await apiResponse.text();
+      console.error('Gemini API Error:', errorText);
+      throw new Error('Failed to get response from AI assistant.');
     }
-  }
 
-  const out = await callWithRetry()
-  if (!out.ok) {
-    // Graceful fallback: respond 200 with a supportive default to keep UX smooth
+    const data = await apiResponse.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "I'm not sure how to respond to that. Could you tell me more?";
+    res.json({ reply: text });
+
+  } catch (e) {
+    console.error('Error calling AI chat:', e);
     const fallback = {
-      en: 'The assistant is busy right now. I\'m here to listen. If this is urgent, please use Crisis Alert or call a local helpline.',
-      hi: 'सहायक अभी व्यस्त है। मैं सुन रहा/रही हूँ। यदि यह आपातकाल है, कृपया Crisis Alert का उपयोग करें।',
-    }
-    const text = fallback[lang] || fallback.en
-    return res.json({ reply: text, degraded: true, error: { status: out.status, text: out.text } })
+      en: "I'm having a little trouble connecting right now. Please know that your feelings are valid. If this is urgent, please use the Crisis Alert.",
+      hi: 'मुझे अभी कनेक्ट होने में थोड़ी दिक्कत हो रही है। कृपया जान लें कि आपकी भावनाएँ मान्य हैं। यदि यह জরুরি है, तो कृपया संकट चेतावनी का उपयोग करें।',
+    };
+    const text = fallback[lang] || fallback.en;
+    res.status(200).json({ reply: text, degraded: true });
   }
-  res.json({ reply: out.text })
-})
+});
 
-export default router
-
-
+export default router;

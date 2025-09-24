@@ -1,30 +1,103 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatedBackground } from '../../components/layout/AnimatedBackground.jsx';
+import { StudentAPI } from '../../services/api.js';
 import styles from './StudentDashboard.module.scss';
 
+function formatDistanceToNow(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    let interval = seconds / 86400;
+    if (interval > 1) return `${Math.floor(interval)} days ago`;
+    interval = seconds / 3600;
+    if (interval > 1) return `${Math.floor(interval)} hours ago`;
+    interval = seconds / 60;
+    if (interval > 1) return `${Math.floor(interval)} minutes ago`;
+    return "just now";
+}
+
 export function StudentDashboard() {
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const data = await StudentAPI.getDashboardSummary();
+        if (data) {
+          setSummary(data);
+        } else {
+          setError('No data available. Complete your first assessment to see your dashboard.');
+        }
+      } catch (err) {
+        console.error('Dashboard error:', err);
+        const errorMessage = err.response?.data?.message || 'Could not load dashboard data. Please try again later.';
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchSummary();
+    
+    // Cleanup function to prevent memory leaks
+    return () => {
+      // Cancel any pending requests here if needed
+    };
+  }, []);
+
+  const lastAssessment = summary?.lastAssessment;
+  // Calculate wellness score (lower score is better, so we invert it for display)
+  const wellnessScore = lastAssessment?.totalScore !== undefined 
+    ? (100 - (lastAssessment.totalScore / 27) * 100).toFixed(0) 
+    : 'N/A';
+    
+  // Determine risk level based on assessment score or default to low
+  const getRiskLevel = () => {
+    if (!lastAssessment) return 'low';
+    
+    const score = lastAssessment.totalScore;
+    if (score < 5) return 'low';
+    if (score < 10) return 'medium';
+    return 'high';
+  };
+  
+  const riskLevel = getRiskLevel();
+
   return (
     <div className={styles.dashboard}>
       <AnimatedBackground />
-      {/* The rest of the JSX remains exactly the same */}
       <div className={styles.hero}>
         <div className={styles.heroContent}>
-          <h1 className={styles.welcome}>Welcome back, Student! 👋</h1>
+          <h1 className={styles.welcome}>Welcome back, {summary?.studentName || 'Student'}! 👋</h1>
           <p className={styles.subtitle}>Your space for mental clarity and support.</p>
-          <div className={styles.statusGrid}>
-            <div className={styles.statusItem}>
-              <span className={styles.statusLabel}>Current Status</span>
-              <span className={`${styles.statusValue} ${styles.lowRisk}`}>Low Risk</span>
+          {loading ? (
+            <p>Loading your status...</p>
+          ) : error ? (
+            <p style={{ color: 'var(--danger)' }}>{error}</p>
+          ) : (
+            <div className={styles.statusGrid}>
+              <div className={styles.statusItem}>
+                <span className={styles.statusLabel}>Current Status</span>
+                <span className={`${styles.statusValue} ${styles[riskLevel + 'Risk']}`}>
+                  {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
+                </span>
+              </div>
+              <div className={styles.statusItem}>
+                <span className={styles.statusLabel}>Last Assessment</span>
+                <span className={styles.statusValue}>{formatDistanceToNow(lastAssessment?.completedAt)}</span>
+              </div>
+              <div className={styles.statusItem}>
+                <span className={styles.statusLabel}>Wellness Score</span>
+                <span className={styles.statusValue}>{wellnessScore}%</span>
+              </div>
             </div>
-            <div className={styles.statusItem}>
-              <span className={styles.statusLabel}>Last Assessment</span>
-              <span className={styles.statusValue}>2 days ago</span>
-            </div>
-             <div className={styles.statusItem}>
-              <span className={styles.statusLabel}>Wellness Score</span>
-              <span className={styles.statusValue}>85%</span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
       <div className={styles.grid}>
@@ -57,6 +130,22 @@ export function StudentDashboard() {
             </Link>
           </div>
         </section>
+        
+        {summary?.nextAppointment && (
+          <section className={`${styles.card} ${styles.appointmentCard}`}>
+            <div className={styles.cardHeader}>
+              <h3>Upcoming Appointment</h3>
+              <div className={styles.cardIcon}>📅</div>
+            </div>
+            <div className={styles.appointmentDetails}>
+              <p>With <strong>{summary.nextAppointment.counselorId?.name || 'Counselor'}</strong></p>
+              <p>{new Date(summary.nextAppointment.startsAt).toLocaleString('en-US', {
+                dateStyle: 'full',
+                timeStyle: 'short',
+              })}</p>
+            </div>
+          </section>
+        )}
 
         <section className={styles.card}>
           <div className={styles.cardHeader}>

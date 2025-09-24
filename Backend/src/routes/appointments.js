@@ -54,9 +54,43 @@ router.post('/book', protectRoute, async (req, res) => {
 // Get appointments for a specific counselor
 router.get('/counselor/:counselorId', protectRoute, isCounselor, async (req, res) => {
   try {
-    let { counselorId } = req.params
+    let { counselorId } = req.params;
     
-    // Ensure ID is a string and pad if necessary
+    // Handle demo counselor
+    if (counselorId === 'counselor-demo') {
+      // Return mock appointments for demo
+      const mockAppointments = [
+        {
+          _id: 'demo-appt-1',
+          student: {
+            _id: 'student-demo',
+            name: 'Demo Student',
+            email: 'student@university.edu'
+          },
+          counselorId: 'counselor-demo',
+          startsAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+          status: 'booked',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          _id: 'demo-appt-2',
+          student: {
+            _id: 'student-demo-2',
+            name: 'Jane Smith',
+            email: 'jane@university.edu'
+          },
+          counselorId: 'counselor-demo',
+          startsAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+          status: 'booked',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+      return res.json(mockAppointments);
+    }
+    
+    // For non-demo counselors, ensure ID is a string and pad if necessary
     counselorId = String(counselorId).trim();
     if (counselorId.length < 24) {
       counselorId = counselorId.padStart(24, '0');
@@ -66,7 +100,7 @@ router.get('/counselor/:counselorId', protectRoute, isCounselor, async (req, res
     
     // Validate counselorId
     if (!mongoose.Types.ObjectId.isValid(counselorId)) {
-      return res.status(400).json({ message: 'Invalid counselor ID format' })
+      return res.status(400).json({ message: 'Invalid counselor ID format' });
     }
     
     const appointments = await Appointment.find({

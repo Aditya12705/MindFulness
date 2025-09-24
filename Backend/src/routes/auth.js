@@ -7,97 +7,104 @@ const router = Router()
 router.post('/login', async (req, res) => {
   try {
     const { email, username, password } = req.body
-    console.log('Login attempt:', { email, username, hasPassword: !!password })
     
     if (!password) {
       return res.status(400).json({ message: 'Password is required' })
     }
 
-    // First, try to find user in database
-    const query = email ? { email } : { username }
-    const user = await User.findOne(query)
+    // Prioritize finding a user in the database
+    const query = email ? { email } : { username };
+    const user = await User.findOne(query);
 
     if (user) {
-      const ok = await user.comparePassword(password)
-      if (ok) {
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '1d' })
-        return res.json({ token, user: { id: user._id, role: user.role, name: user.name, email: user.email } })
+      const isMatch = await user.comparePassword(password);
+      if (isMatch) {
+        // Ensure the user ID is a string in the JWT payload
+        const userId = user._id.toString();
+        const token = jwt.sign(
+          { id: userId, role: user.role }, 
+          process.env.JWT_SECRET || 'dev_secret', 
+          { expiresIn: '1d' }
+        );
+        const userPayload = { 
+          id: userId, 
+          role: user.role, 
+          name: user.name, 
+          email: user.email 
+        };
+        return res.json({ token, user: userPayload });
       }
     }
 
-    // Fallback demo accounts (for testing without database)
-    if (username === 'admin' && password === 'admin123') {
-      const token = jwt.sign({ id: 'admin-demo', role: 'admin' }, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '1d' })
-      return res.json({ token, user: { id: 'admin-demo', role: 'admin', name: 'Admin Demo', email: 'admin@demo.local' } })
+    // Handle demo student login
+    if ((email === 'student@university.edu' || username === 'demo_student') && password === 'demo123') {
+      const demoUser = {
+        _id: 'student-demo',
+        role: 'student',
+        name: 'Demo Student',
+        email: 'student@university.edu'
+      };
+      
+      const token = jwt.sign(
+        { id: demoUser._id, role: demoUser.role },
+        process.env.JWT_SECRET || 'dev_secret',
+        { expiresIn: '1d' }
+      );
+      
+      return res.json({
+        token,
+        user: {
+          id: demoUser._id,
+          role: demoUser.role,
+          name: demoUser.name,
+          email: demoUser.email
+        }
+      });
     }
     
-    if (email === 'student@university.edu' && password === 'admin123') {
-      const token = jwt.sign({ id: 'student-demo', role: 'student' }, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '1d' })
-      return res.json({ token, user: { id: 'student-demo', role: 'student', name: 'Student Demo', email } })
-    }
-
-    // Additional fallback for common test credentials
-    if (username === 'admin' && password === 'password123') {
-      const token = jwt.sign({ id: 'admin-test', role: 'admin' }, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '1d' })
-      return res.json({ token, user: { id: 'admin-test', role: 'admin', name: 'Admin Test', email: 'admin@test.local' } })
-    }
-
-    if (email === 'admin' && password === 'admin123') {
-      const token = jwt.sign({ id: 'admin-email', role: 'admin' }, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '1d' })
-      return res.json({ token, user: { id: 'admin-email', role: 'admin', name: 'Admin Email', email: 'admin@demo.local' } })
-    }
-
-    // Demo counselor accounts
-    if (username === 'rajat' && password === 'counselor123') {
-      const token = jwt.sign({ 
-        id: 'counselor-1', 
+    // Handle demo counselor login
+    if (username === 'rajat' && password === 'rajat123') {
+      const demoCounselor = {
+        _id: 'counselor-demo',
         role: 'counselor',
-        counselorId: '1'  // Make sure this matches the ID used in the frontend
-      }, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '1d' })
-      return res.json({ 
-        token, 
-        user: { 
-          id: 'counselor-1', 
-          role: 'counselor', 
-          name: 'Dr. Rajat Sharma', 
-          email: 'rajat@counselor.demo',
-          counselorId: '1'  // Also include in user object for easy access
-        } 
-      })
+        name: 'Dr. Rajat Sharma',
+        email: 'rajat@counselor.edu'
+      };
+      
+      const token = jwt.sign(
+        { id: demoCounselor._id, role: demoCounselor.role },
+        process.env.JWT_SECRET || 'dev_secret',
+        { expiresIn: '1d' }
+      );
+      
+      return res.json({
+        token,
+        user: {
+          id: demoCounselor._id,
+          role: demoCounselor.role,
+          name: demoCounselor.name,
+          email: demoCounselor.email
+        }
+      });
     }
 
-    if (username === 'iyer' && password === 'counselor123') {
-      const token = jwt.sign({ 
-        id: 'counselor-2', 
-        role: 'counselor',
-        counselorId: '2'  // Make sure this matches the ID used in the frontend
-      }, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '1d' })
-      return res.json({ 
-        token, 
-        user: { 
-          id: 'counselor-2', 
-          role: 'counselor', 
-          name: 'Dr. R. Iyer', 
-          email: 'iyer@counselor.demo',
-          counselorId: '2'  // Also include in user object for easy access
-        } 
-      })
-    }
-
-    console.log('No matching credentials found')
-    return res.status(400).json({ message: 'Invalid credentials' })
+    console.log('No matching credentials found for:', { email, username });
+    return res.status(401).json({ message: 'Invalid credentials' });
   } catch (error) {
-    console.error('Login error:', error)
-    return res.status(500).json({ message: 'Internal server error' })
+    console.error('Login error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.post('/register', async (req, res) => {
+  try {
+    const { name, email, username, password, role } = req.body
+    const user = await User.create({ name, email, username, password, role })
+    res.status(201).json({ id: user._id })
+  } catch(error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Error creating user' });
   }
 })
 
-router.post('/register', async (req, res) => {
-  const { name, email, username, password, role } = req.body
-  const user = await User.create({ name, email, username, password, role })
-  res.status(201).json({ id: user._id })
-})
-
 export default router
-
-
