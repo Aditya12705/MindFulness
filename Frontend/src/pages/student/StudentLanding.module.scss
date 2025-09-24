@@ -1,21 +1,28 @@
 // Main hero container
 .hero {
   min-height: 100vh;
-  background: radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 70%);
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden;
   scroll-behavior: smooth;
+  background: #1a1a1a; // Fallback solid color
   
-  &::before {
+  // Overlay to improve text readability
+  &::after {
     content: '';
     position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 800px;
-    height: 400px;
-    background: radial-gradient(ellipse, rgba(74, 58, 106, 0.3) 0%, transparent 70%);
+    background: linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 100%);
+    z-index: 0;
     pointer-events: none;
+  }
+  
+  // Ensure content stays above the animated background
+  & > *:not(div[style*="gradientBG"]) {
+    position: relative;
+    z-index: 1;
   }
 }
 
@@ -27,6 +34,10 @@
   padding: 20px 32px;
   position: relative;
   z-index: 10;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .logo {

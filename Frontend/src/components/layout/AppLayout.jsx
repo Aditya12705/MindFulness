@@ -1,358 +1,185 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import styles from './AppLayout.module.scss'
-import { useAuth } from '../../context/AuthContext.jsx'
-import { MoodIndicator } from '../mood/MoodIndicator.jsx'
+import { useState, useRef } from 'react';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { MoodIndicator } from '../mood/MoodIndicator.jsx';
+import { ChatbotWidget } from '../chatbot/ChatbotWidget.jsx';
+import { useClickAway } from 'react-use';
+import styles from './AppLayout.module.scss';
+
+// Icons
+const UserIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+);
+
+const LogOutIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+    <polyline points="16 17 21 12 16 7"></polyline>
+    <line x1="21" y1="12" x2="9" y2="12"></line>
+  </svg>
+);
+
+const ChevronDown = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="caret">
+    <polyline points="6 9 12 15 18 9"></polyline>
+  </svg>
+);
+
+const AdminIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+  </svg>
+);
 
 export function AppLayout() {
-  const { adminLoggedIn, studentLoggedIn, logoutStudent, logoutAdmin } = useAuth()
-  const [open, setOpen] = useState(false)
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'system')
-  const navigate = useNavigate()
+  const { adminLoggedIn, studentLoggedIn, logoutStudent, logoutAdmin, user } = useAuth();
+  const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   
-  function goAdmin() { navigate(adminLoggedIn ? '/admin/dashboard' : '/login?role=admin') }
+  // Close dropdown when clicking outside
+  useClickAway(dropdownRef, () => {
+    setDropdownOpen(false);
+  });
+
+  const handleLogout = async () => {
+    try {
+      // Close dropdown
+      setDropdownOpen(false);
+      
+      // Call the appropriate logout function
+      if (studentLoggedIn) {
+        await logoutStudent();
+      } else if (adminLoggedIn) {
+        await logoutAdmin();
+      }
+      
+      // Force a full page reload to ensure all state is cleared
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still redirect even if there's an error
+      window.location.href = '/';
+    }
+  };
   
-  function handleLogout() {
-    // Call the appropriate logout function based on the user's role
-    if (studentLoggedIn) {
-      logoutStudent()
-    } else if (adminLoggedIn) {
-      logoutAdmin()
+  const getUserInitials = () => {
+    if (!user) return 'U';
+    if (user.name) {
+      return user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
     }
-    
-    // Force a hard navigation to ensure the app fully resets
-    window.location.href = '/'
-  }
+    return user.role === 'admin' ? 'AD' : 'U';
+  };
 
-  // Determine effective theme when using system preference
-  function getSystemTheme(){
-    if (typeof window === 'undefined') return 'light'
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  }
-
-  useEffect(() => {
-    const root = document.documentElement
-    const apply = (mode) => {
-      const effective = mode === 'system' ? getSystemTheme() : mode
-      if (effective === 'dark') root.setAttribute('data-theme', 'dark')
-      else root.removeAttribute('data-theme')
-    }
-
-    apply(theme)
-    localStorage.setItem('theme', theme)
-
-    // Listen to OS changes when in system mode
-    const mql = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null
-    const handler = () => { if (theme === 'system') apply('system') }
-    if (mql) mql.addEventListener ? mql.addEventListener('change', handler) : mql.addListener(handler)
-    return () => { if (mql) mql.removeEventListener ? mql.removeEventListener('change', handler) : mql.removeListener(handler) }
-  }, [theme])
-
-  function toggleTheme(){
-    setTheme(t => t === 'light' ? 'dark' : t === 'dark' ? 'system' : 'light')
-  }
-  const effectiveTheme = theme === 'system' ? (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme
-  const themeIcon = theme === 'system' ? '🖥️' : effectiveTheme === 'dark' ? '🌙' : '☀️'
-  const themeTitle = `Theme: ${theme} (click to switch)`
   const handleGoBack = () => {
-    window.history.back();
+    navigate(-1); // Navigates to the previous page in history
   };
 
   return (
-    <div className={styles.shell} style={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100vh',
-      background: 'var(--bg)'
-    }}>
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000,
-        background: 'var(--panel)',
-        boxShadow: 'var(--shadow-md)',
-        padding: '10px 0',
-        borderBottom: '1px solid var(--border)'
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          maxWidth: '1400px',
-          margin: '0 auto',
-          padding: '0 20px',
-          height: '70px'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '20px'
-          }}>
-            <button 
+    <div className={styles.shell}>
+      <header className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerLeft}>
+            <button
               onClick={handleGoBack}
               aria-label="Go back"
               title="Go back"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'var(--panel-2)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                color: 'var(--text)',
-                fontSize: '18px',
-                padding: '8px 12px',
-                cursor: 'pointer',
-                transition: 'var(--transition)',
-                minWidth: '40px',
-                height: '40px',
-                '&:hover': {
-                  background: 'var(--panel-3)'
-                }
-              }}
+              className={styles.backButton}
             >
               ←
             </button>
-            <Link 
-              to="/" 
-              style={{
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                '&:hover': {
-                  opacity: 0.9
-                }
-              }}
-            >
-              <img 
-                src="/images/logo.png" 
+            <Link to="/" className={styles.brand}>
+              <img
+                src="/images/logo.png"
                 alt="MindFulness Logo"
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  objectFit: 'contain'
-                }}
+                className={styles.logo}
               />
-              <span style={{
-                background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                fontWeight: '700',
-                fontSize: '22px',
-                lineHeight: 1.2
-              }}>
-                MindFulness
-              </span>
+              <span>MindFulness</span>
             </Link>
           </div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '15px'
-          }}>
-            <div style={{
-              display: 'flex',
-              gap: '10px',
-              marginRight: '20px'
-            }}>
-              <NavLink 
-                to="/student"
-                style={({ isActive }) => ({
-                  padding: '8px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  textDecoration: 'none',
-                  color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                  backgroundColor: isActive ? 'rgba(74, 137, 220, 0.1)' : 'transparent',
-                  transition: 'var(--transition)',
-                  fontWeight: '500',
-                  '&:hover': {
-                    color: 'var(--primary)',
-                    backgroundColor: 'rgba(74, 137, 220, 0.1)'
-                  }
-                })}
-              >
-                Student
-              </NavLink>
-              <NavLink 
-                to="/student/dashboard"
-                style={({ isActive }) => ({
-                  padding: '8px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  textDecoration: 'none',
-                  color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                  backgroundColor: isActive ? 'rgba(74, 137, 220, 0.1)' : 'transparent',
-                  transition: 'var(--transition)',
-                  fontWeight: '500',
-                  '&:hover': {
-                    color: 'var(--primary)',
-                    backgroundColor: 'rgba(74, 137, 220, 0.1)'
-                  }
-                })}
-              >
-                Dashboard
-              </NavLink>
-              <NavLink 
-                to="/student/support"
-                style={({ isActive }) => ({
-                  padding: '8px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  textDecoration: 'none',
-                  color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
-                  backgroundColor: isActive ? 'rgba(74, 137, 220, 0.1)' : 'transparent',
-                  transition: 'var(--transition)',
-                  fontWeight: '500',
-                  '&:hover': {
-                    color: 'var(--primary)',
-                    backgroundColor: 'rgba(74, 137, 220, 0.1)'
-                  }
-                })}
-              >
-                Support
-              </NavLink>
-            </div>
-
+          <nav className={styles.navLinks}>
+            <NavLink to="/student/dashboard">Dashboard</NavLink>
+            <NavLink to="/student/support">Get Support</NavLink>
+            <NavLink to="/student/assessment">Assessment</NavLink>
+          </nav>
+          <div className={styles.headerRight}>
             <MoodIndicator compact={true} />
             
-            <button 
-              onClick={toggleTheme} 
-              aria-label="Toggle theme" 
-              title={themeTitle}
-              style={{
-                background: 'var(--panel-2)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                width: '40px',
-                height: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                transition: 'var(--transition)',
-                '&:hover': {
-                  background: 'var(--panel-3)'
-                }
-              }}
-            >
-              <span style={{fontSize:'18px', lineHeight:1}}>{themeIcon}</span>
-            </button>
-            
-            {studentLoggedIn ? (
-              <button 
-                onClick={handleLogout}
-                style={{
-                  background: 'var(--danger)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '0 20px',
-                  height: '40px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'var(--transition)',
-                  '&:hover': {
-                    opacity: 0.9,
-                    transform: 'translateY(-1px)'
-                  }
-                }}
-              >
-                Logout
-              </button>
+            {studentLoggedIn || adminLoggedIn ? (
+              <div className={styles['user-menu']}>
+                <div className={styles['user-avatar']}>
+                  {getUserInitials()}
+                </div>
+                <div className={styles.dropdown} ref={dropdownRef}>
+                  <button 
+                    className={styles['dropdown-toggle']}
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    aria-expanded={dropdownOpen}
+                    aria-haspopup="true"
+                  >
+                    {user?.name || (adminLoggedIn ? 'Admin' : 'User')}
+                    <ChevronDown />
+                  </button>
+                  <div 
+                    className={styles['dropdown-menu']} 
+                    data-show={dropdownOpen ? 'true' : undefined}
+                  >
+                    <Link 
+                      to={adminLoggedIn ? '/admin/dashboard' : '/student/dashboard'} 
+                      className={styles['dropdown-item']}
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <UserIcon className={styles['btn-icon']} />
+                      {adminLoggedIn ? 'Admin Dashboard' : 'My Dashboard'}
+                    </Link>
+                    <div className={styles.divider}></div>
+                    <button 
+                      onClick={handleLogout}
+                      className={`${styles['dropdown-item']} ${styles.danger}`}
+                    >
+                      <LogOutIcon className={styles['btn-icon']} />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
             ) : (
-              <button 
-                onClick={goAdmin}
-                style={{
-                  background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
-                  padding: '0 20px',
-                  height: '40px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'var(--transition)',
-                  '&:hover': {
-                    transform: 'translateY(-1px)',
-                    boxShadow: 'var(--shadow-md)'
-                  }
-                }}
+              <button
+                onClick={() => navigate('/login?role=admin')}
+                className={`${styles.btn} ${styles['btn-admin']}`}
               >
-                {adminLoggedIn ? 'Admin Panel' : 'Login'}
+                <AdminIcon className={styles['btn-icon']} />
+                Admin Login
               </button>
             )}
           </div>
         </div>
       </header>
-      {/* Main Content */}
-      <main className={styles.mainContent} style={{
-        flex: 1,
-        padding: '30px 20px',
-        maxWidth: '1400px',
-        width: '100%',
-        margin: '0 auto'
-      }}>
-        <div className={styles.mainContentArea}>
+      
+      <main className={styles.main}>
+        <div className={styles.contentWrapper}>
           <div className={styles.contentArea}>
             <Outlet />
           </div>
-          <div className={styles.sidebar}>
+          <aside className={styles.sidebar}>
             <MoodIndicator showHistory={true} />
-          </div>
+          </aside>
         </div>
       </main>
-      {/* Footer */}
-      <footer className={styles.footer} style={{
-        background: 'var(--panel)',
-        borderTop: '1px solid var(--border)',
-        padding: '20px 0',
-        marginTop: 'auto'
-      }}>
-        <div className={styles.footerContent} style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
-          padding: '0 20px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '10px',
-          textAlign: 'center',
-          color: 'var(--text-secondary)',
-          fontSize: '14px'
-        }}>
-          <p style={{ margin: 0 }}> 2025 MindFulness. All rights reserved.</p>
-          <div className={styles.footerLinks} style={{
-            display: 'flex',
-            gap: '20px',
-            marginTop: '8px'
-          }}>
-            <Link to="/privacy" style={{
-              color: 'var(--text-secondary)',
-              textDecoration: 'none',
-              transition: 'var(--transition)',
-              '&:hover': {
-                color: 'var(--primary)'
-              }
-            }}>Privacy Policy</Link>
-            <Link to="/terms" style={{
-              color: 'var(--text-secondary)',
-              textDecoration: 'none',
-              transition: 'var(--transition)',
-              '&:hover': {
-                color: 'var(--primary)'
-              }
-            }}>Terms of Service</Link>
-            <Link to="/contact" style={{
-              color: 'var(--text-secondary)',
-              textDecoration: 'none',
-              transition: 'var(--transition)',
-              '&:hover': {
-                color: 'var(--primary)'
-              }
-            }}>Contact Us</Link>
-          </div>
+
+      <footer className={styles.footer}>
+        <p>&copy; 2025 MindFulness. Your mental health matters.</p>
+        <div className={styles.footerLinks}>
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/terms">Terms of Service</Link>
+          <Link to="/contact">Contact</Link>
         </div>
       </footer>
+      
+      <ChatbotWidget />
     </div>
-  )
+  );
 }

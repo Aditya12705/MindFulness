@@ -17,18 +17,12 @@ dotenv.config()
 
 const app = express()
 
-// Enhanced CORS configuration
+// CORS configuration for development
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5175',
-    'http://localhost:5176'
-  ],
+  origin: true, // Allow all origins in development
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Content-Length', 'X-Requested-With']
 }))
 
 app.use(helmet())
@@ -48,11 +42,27 @@ app.use(errorHandler)
 const PORT = process.env.PORT || 4000
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/hopeline'
 
-mongoose.connect(MONGO_URI).then(()=>{
-  app.listen(PORT, ()=> console.log(`API running on http://localhost:${PORT}`))
-}).catch(err=>{
-  console.error('Mongo connection error', err)
-  process.exit(1)
-})
+// Connect to MongoDB and start the server
+mongoose.connect(MONGO_URI)
+  .then(() => {
+    console.log('Connected to MongoDB successfully');
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+      console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
+    });
 
+    // Handle server errors
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use`);
+      } else {
+        console.error('Server error:', error);
+      }
+      process.exit(1);
+    });
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
+  });
 

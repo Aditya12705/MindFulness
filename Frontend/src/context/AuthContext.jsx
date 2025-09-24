@@ -27,10 +27,73 @@ export function AuthProvider({ children }) {
     setAdminLoggedIn(data.user.role==='admin')
   }
 
-  const loginStudent = () => { setStudentLoggedIn(true); localStorage.setItem('role','student') }
-  const logoutStudent = () => { setStudentLoggedIn(false); localStorage.removeItem('token'); localStorage.removeItem('role'); setUser(null) }
-  const loginAdmin   = () => { setAdminLoggedIn(true); localStorage.setItem('role','admin') }
-  const logoutAdmin  = () => { setAdminLoggedIn(false); localStorage.removeItem('token'); localStorage.removeItem('role'); setUser(null) }
+  const loginStudent = () => { 
+    try {
+      setStudentLoggedIn(true); 
+      setAdminLoggedIn(false);
+      localStorage.setItem('role', 'student');
+      setUser({ role: 'student' });
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  }
+  
+  const logoutStudent = async () => { 
+    try {
+      // Add any API call for logout if needed
+      // await AuthAPI.logout();
+      
+      setStudentLoggedIn(false); 
+      localStorage.removeItem('token'); 
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if there's an error, we still want to clear the local state
+      setStudentLoggedIn(false);
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
+      setUser(null);
+      throw error;
+    }
+  }
+  
+  const loginAdmin = () => { 
+    try {
+      setAdminLoggedIn(true); 
+      setStudentLoggedIn(false);
+      localStorage.setItem('role', 'admin');
+      setUser({ role: 'admin' });
+    } catch (error) {
+      console.error('Admin login error:', error);
+      throw error;
+    }
+  }
+  
+  const logoutAdmin = async () => { 
+    try {
+      // Add any API call for logout if needed
+      // await AuthAPI.logout();
+      
+      setAdminLoggedIn(false); 
+      localStorage.removeItem('token'); 
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
+      setUser(null);
+    } catch (error) {
+      console.error('Admin logout error:', error);
+      // Even if there's an error, we still want to clear the local state
+      setAdminLoggedIn(false);
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
+      setUser(null);
+      throw error;
+    }
+  }
 
   return (
     <AuthContext.Provider value={{ user, studentLoggedIn, adminLoggedIn, loginStudent, logoutStudent, loginAdmin, logoutAdmin, login }}>

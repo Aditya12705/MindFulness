@@ -24,32 +24,97 @@ export function StudentLanding() {
   const getDynamicGreeting = () => {
     if (studentLoggedIn) return <span style={{ 
       fontStyle: 'italic',
-      color: '#1a365d',
-      textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+      color: '#ffffff',
+      textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+      fontSize: '2.5rem',
+      fontWeight: '700',
+      lineHeight: '1.2',
+      display: 'inline-block',
+      margin: '1rem 0',
+      background: 'linear-gradient(135deg, #ffffff, #e6f0ff)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text'
     }}>"Welcome back! How are you feeling today?"</span>
     return <span style={{ 
       fontStyle: 'italic',
-      color: '#1a365d',
-      textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-    }}>"Find Peace of Mind"</span>
+      color: '#ffffff',
+      textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+      fontSize: '3rem',
+      fontWeight: '800',
+      lineHeight: '1.2',
+      display: 'inline-block',
+      margin: '1rem 0',
+      background: 'linear-gradient(135deg, #ffffff, #e6f0ff)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text'
+    }}>Find Your Peace</span>
   }
 
   const getDynamicDescription = () => {
+    const style = {
+      color: '#e2e8f0',
+      fontSize: '1.25rem',
+      lineHeight: '1.6',
+      maxWidth: '600px',
+      margin: '0 auto',
+      textShadow: '0 1px 3px rgba(0,0,0,0.2)',
+      fontWeight: '400'
+    };
+    
     if (personalizedContent) {
-      return <span style={{ color: '#2d3748' }}>{personalizedContent.message}</span>
+      return <span style={style}>{personalizedContent.message}</span>
     }
     if (studentLoggedIn) {
-      return <span style={{ color: '#2d3748' }}>"Continue your mental health journey with personalized support and resources."</span>
+      return <span style={style}>"Continue your mental health journey with personalized support and resources."</span>
     }
-    return <span style={{ color: '#2d3748' }}>"Experience a new way of emotional support. Our AI companion is here to listen, understand, and guide you through life's journey."</span>
+    return <span style={style}>"Experience a new way of emotional support. Our AI companion is here to listen, understand, and guide you through life's journey."</span>
   }
 
   return (
     <div className={styles.hero} style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%)',
-      color: '#2c3e50' /* Darker text for better contrast */
+      position: 'relative',
+      overflow: 'hidden',
+      color: '#2c3e50',
+      '--gradient-1': '#1a2980',
+      '--gradient-2': '#26d0ce',
+      '--gradient-3': '#4b6cb7',
+      '--gradient-4': '#182848'
     }}>
+      {/* Animated Gradient Background */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: `
+          linear-gradient(
+            45deg,
+            var(--gradient-1),
+            var(--gradient-2),
+            var(--gradient-3),
+            var(--gradient-4)
+          )`,
+        backgroundSize: '400% 400%',
+        animation: 'gradientBG 15s ease infinite',
+        zIndex: -1
+      }} />
+      <style jsx global>{`
+        @keyframes gradientBG {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+      `}</style>
       {/* Header */}
       <header className={styles.header} style={{
         background: 'var(--panel)',

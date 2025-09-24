@@ -218,11 +218,20 @@ export function Login() {
                 width: '100%',
                 padding: '14px 16px',
                 borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border)',
-                background: 'var(--input-bg, #fff)',
-                color: 'var(--text)',
+                border: '1px solid var(--border, #d1d5db)',
+                backgroundColor: 'var(--input-bg, #ffffff)',
+                color: 'var(--text-primary, #111827)',
                 fontSize: '16px',
-                transition: 'var(--transition)'
+                transition: 'all 0.2s ease',
+                outline: 'none',
+                '::placeholder': {
+                  color: 'var(--text-muted, #6b7280)',
+                  opacity: 1
+                },
+                ':focus': {
+                  borderColor: 'var(--primary, #4f46e5)',
+                  boxShadow: '0 0 0 3px rgba(79, 70, 229, 0.2)'
+                }
               }}
             />
           </div>
@@ -248,11 +257,20 @@ export function Login() {
                 width: '100%',
                 padding: '14px 16px',
                 borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border)',
-                background: 'var(--input-bg, #fff)',
-                color: 'var(--text)',
+                border: '1px solid var(--border, #d1d5db)',
+                backgroundColor: 'var(--input-bg, #ffffff)',
+                color: 'var(--text-primary, #111827)',
                 fontSize: '16px',
-                transition: 'var(--transition)'
+                transition: 'all 0.2s ease',
+                outline: 'none',
+                '::placeholder': {
+                  color: 'var(--text-muted, #6b7280)',
+                  opacity: 1
+                },
+                ':focus': {
+                  borderColor: 'var(--primary, #4f46e5)',
+                  boxShadow: '0 0 0 3px rgba(79, 70, 229, 0.2)'
+                }
               }}
             />
           </div>
