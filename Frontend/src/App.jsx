@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout.jsx';
 import { StudentLanding } from './pages/student/StudentLanding.jsx';
 import { StudentDashboard } from './pages/student/StudentDashboard.jsx';
@@ -22,6 +22,7 @@ import { MoodProvider } from './context/MoodContext.jsx';
 import Login from './pages/auth/Login.jsx';
 import Register from './pages/student/Register.jsx';
 import { AdminIcon } from './components/icons/AdminIcon.jsx';
+import { ChatbotWidget } from './components/chatbot/ChatbotWidget.jsx';
 import styles from './App.module.scss';
 
 function AppRoutes() {
@@ -68,11 +69,19 @@ function AppRoutes() {
   );
 }
 
+function ChatbotRenderer() {
+  const location = useLocation();
+  const showChatbot = location.pathname === '/' || location.pathname === '/student/dashboard';
+
+  return showChatbot ? <ChatbotWidget /> : null;
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <MoodProvider>
         <AppRoutes />
+        <ChatbotRenderer />
       </MoodProvider>
     </AuthProvider>
   );

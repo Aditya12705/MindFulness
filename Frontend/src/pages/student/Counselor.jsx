@@ -1,18 +1,30 @@
-import { useState } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppointmentsAPI } from '../../services/api.js'
+import { AuthContext } from '../../context/AuthContext.jsx'
 
-const counselors = [
-  { id: 1, name: 'Dr. A. Sharma', specialty: 'Anxiety', photo: '/avatar1.png' },
-  { id: 2, name: 'Ms. R. Iyer', specialty: 'Depression', photo: '/avatar2.png' },
-]
+  // Use valid MongoDB ObjectId format (24-character hex string)
+  const counselors = [
+    { id: '000000000000000000000001', name: 'Dr. Rajat Sharma', specialty: 'Anxiety', photo: '/avatar1.png' },
+    { id: '000000000000000000000002', name: 'Dr. R. Iyer', specialty: 'Depression', photo: '/avatar2.png' },
+  ]
 
 export function Counselor() {
   const [selected, setSelected] = useState(null)
+  const [date, setDate] = useState('')
   const [slot, setSlot] = useState('10:00')
   const [booked, setBooked] = useState(false)
   const [lastAppointment, setLastAppointment] = useState(null)
+  const [error, setError] = useState('')
+  const { user, studentLoggedIn } = useContext(AuthContext)
   const navigate = useNavigate()
+
+  // Redirect to login if not authenticated as student
+  useEffect(() => {
+    if (!studentLoggedIn) {
+      navigate('/login?role=student')
+    }
+  }, [studentLoggedIn, navigate])
 
   return (
     <div className="grid" style={{gap:24}}>
@@ -36,23 +48,82 @@ export function Counselor() {
           <div>
             <p>With <strong>{selected.name}</strong></p>
             <label>Date</label>
-            <input type="date" />
+            <input 
+              type="date" 
+              value={date}
+              min={new Date().toISOString().split('T')[0]}
+              onChange={e => setDate(e.target.value)}
+              className="form-input"
+              style={{width: '100%', padding: '8px', marginBottom: '12px'}}
+            />
             <label>Time</label>
-            <select value={slot} onChange={e=>setSlot(e.target.value)}>
-              {['10:00','11:00','14:00','15:00'].map(s=> <option key={s}>{s}</option>)}
+            <select 
+              value={slot} 
+              onChange={e => setSlot(e.target.value)}
+              className="form-select"
+              style={{width: '100%', padding: '8px', marginBottom: '12px'}}
+            >
+              {['10:00','11:00','14:00','15:00'].map(s => 
+                <option key={s} value={s}>{s}</option>
+              )}
             </select>
-            <button className="btn primary" style={{marginTop:10}} onClick={async ()=>{
-              const token = localStorage.getItem('token')
-              if (!token) { alert('Please login first'); navigate('/login?role=student'); return }
-              const res = await AppointmentsAPI.book({ studentId: '000000000000000000000001', counselorId: String(selected.id).padStart(24,'0'), startsAt: new Date().toISOString() })
-              setBooked(true)
-              setLastAppointment(res)
-              localStorage.setItem('lastAppointmentId', res._id || '')
-            }}>Book</button>
-            {booked && <p className="pill" style={{marginTop:8}}>Booked for {slot}. Appointment saved.</p>}
-            <div className="card" style={{marginTop:12}}>
-              <p>Secure video/chat session window (placeholder)</p>
-            </div>
+            <button 
+              className="btn primary" 
+              style={{marginTop: 10, width: '100%'}} 
+              disabled={!date}
+              onClick={async () => {
+                try {
+                  if (!studentLoggedIn) { 
+                    navigate('/login?role=student')
+                    return 
+                  }
+                  
+                  if (!date) {
+                    setError('Please select a date')
+                    return
+                  }
+                  
+                  // Combine date and time
+                  const [year, month, day] = date.split('-')
+                  const [hours, minutes] = slot.split(':')
+                  const appointmentDate = new Date(year, month - 1, day, hours, minutes)
+                  
+                  // Ensure we have valid ObjectId format
+                  const studentId = user?._id || '000000000000000000000003'; // Different from counselor IDs
+                  const counselorId = selected.id;
+                  
+                  console.log('Booking appointment with:', {
+                    studentId,
+                    counselorId,
+                    startsAt: appointmentDate.toISOString()
+                  });
+                  
+                  const res = await AppointmentsAPI.book({ 
+                    studentId,
+                    counselorId,
+                    startsAt: appointmentDate.toISOString()
+                  });
+                  
+                  console.log('Appointment booked:', res);
+                  
+                  setBooked(true)
+                  setLastAppointment(res)
+                  setError('')
+                  localStorage.setItem('lastAppointmentId', res._id || '')
+                } catch (err) {
+                  console.error('Error booking appointment:', err)
+                  setError('Failed to book appointment. Please try again.')
+                }
+              }}
+            >
+              Book Appointment
+            </button>
+            {error && <p className="error" style={{color: 'red', marginTop: '8px'}}>{error}</p>}
+            {booked && (
+              <div className="success-message" style={{marginTop: '12px', padding: '10px', background: '#d4edda', color: '#155724', borderRadius: '4px'}}>
+                <p>✅ Successfully booked appointment with {selected.name} on {new Date(lastAppointment?.startsAt).toLocaleString()}</p>
+              </div>
+            )}
           </div>
         )}
       </section>

@@ -47,6 +47,43 @@ router.post('/login', async (req, res) => {
       return res.json({ token, user: { id: 'admin-email', role: 'admin', name: 'Admin Email', email: 'admin@demo.local' } })
     }
 
+    // Demo counselor accounts
+    if (username === 'rajat' && password === 'counselor123') {
+      const token = jwt.sign({ 
+        id: 'counselor-1', 
+        role: 'counselor',
+        counselorId: '1'  // Make sure this matches the ID used in the frontend
+      }, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '1d' })
+      return res.json({ 
+        token, 
+        user: { 
+          id: 'counselor-1', 
+          role: 'counselor', 
+          name: 'Dr. Rajat Sharma', 
+          email: 'rajat@counselor.demo',
+          counselorId: '1'  // Also include in user object for easy access
+        } 
+      })
+    }
+
+    if (username === 'iyer' && password === 'counselor123') {
+      const token = jwt.sign({ 
+        id: 'counselor-2', 
+        role: 'counselor',
+        counselorId: '2'  // Make sure this matches the ID used in the frontend
+      }, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '1d' })
+      return res.json({ 
+        token, 
+        user: { 
+          id: 'counselor-2', 
+          role: 'counselor', 
+          name: 'Dr. R. Iyer', 
+          email: 'iyer@counselor.demo',
+          counselorId: '2'  // Also include in user object for easy access
+        } 
+      })
+    }
+
     console.log('No matching credentials found')
     return res.status(400).json({ message: 'Invalid credentials' })
   } catch (error) {

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { AuthAPI } from '../services/api.js'
 
-const AuthContext = createContext(null)
+export const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   // Initialize state from localStorage if available
@@ -196,6 +196,9 @@ export function AuthProvider({ children }) {
         user: null,
         initialized: true
       });
+
+      // Redirect to landing page after state is updated
+      window.location.href = '/';
     } catch (error) {
       console.error('Admin logout error:', error);
       // Even if there's an error, we still want to clear the local state
@@ -209,7 +212,9 @@ export function AuthProvider({ children }) {
         user: null,
         initialized: true
       });
-      
+
+      // Still redirect to landing page even if there was an error
+      window.location.href = '/';
       throw error;
     }
   }

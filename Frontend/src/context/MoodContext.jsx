@@ -36,6 +36,43 @@ export function MoodProvider({ children }) {
     }
   }, [moodHistory])
 
+  const getFallbackContent = (moodId) => {
+    const emotion = emotions.find(e => e.id === moodId) || emotions.find(e => e.id === 'peaceful');
+    const moodSpecificContent = {
+      down: {
+        message: "It's okay to feel down. We're here to help you through it.",
+        activity: "Consider taking a mental health assessment.",
+        quote: "Tough times never last, but tough people do. - Robert H. Schuller"
+      },
+      content: {
+        message: "Feeling content is a wonderful state of being. Let's cherish it.",
+        activity: "Try some light journaling to capture this feeling.",
+        quote: "The greatest wealth is to live content with little. - Plato"
+      },
+      peaceful: {
+        message: "Embrace this moment of peace. Let it calm your mind and body.",
+        activity: "Try a 5-minute mindful breathing exercise.",
+        quote: "Peace comes from within. Do not seek it without. - Buddha"
+      },
+      happy: {
+        message: "It's great to see you're happy! Let's spread the positivity.",
+        activity: "Share your good feelings with a friend or loved one.",
+        quote: "The purpose of our lives is to be happy. - Dalai Lama"
+      },
+      excited: {
+        message: "That's fantastic! Channel that wonderful excitement.",
+        activity: "Start a new creative project or learn something new.",
+        quote: "Enthusiasm is the mother of effort. - Ralph Waldo Emerson"
+      }
+    };
+
+    return moodSpecificContent[moodId] || {
+      message: `We're here to support you through this ${emotion.label.toLowerCase()} feeling.`,
+      activity: 'Take a deep breath and try some gentle stretching.',
+      quote: 'Every emotion is valid and temporary. You are stronger than you know.'
+    };
+  };
+
   const updateMood = async (newMood, additionalContext = '') => {
     const emotion = emotions.find(e => e.id === newMood)
     if (!emotion) return
@@ -79,21 +116,13 @@ export function MoodProvider({ children }) {
         setPersonalizedContent(content)
       } catch (e) {
         // Fallback if AI doesn't return valid JSON
-        setPersonalizedContent({
-          message: `We're here to support you through this ${emotion?.label.toLowerCase()} feeling.`,
-          activity: 'Take a deep breath and try some gentle stretching',
-          quote: 'Every emotion is valid and temporary. You are stronger than you know.'
-        })
+        console.warn('AI response was not valid JSON, using fallback content.');
+        setPersonalizedContent(getFallbackContent(mood));
       }
     } catch (error) {
       console.error('Error generating personalized content:', error)
-      // Fallback content
-      const emotion = emotions.find(e => e.id === mood)
-      setPersonalizedContent({
-        message: `We're here to support you through this ${emotion?.label.toLowerCase()} feeling.`,
-        activity: 'Take a deep breath and try some gentle stretching',
-        quote: 'Every emotion is valid and temporary. You are stronger than you know.'
-      })
+      // Fallback content on API error
+      setPersonalizedContent(getFallbackContent(mood));
     } finally {
       setIsLoading(false)
     }

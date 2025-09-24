@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useMood } from '../../context/MoodContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -11,37 +11,33 @@ export function StudentLanding() {
   const [animationKey, setAnimationKey] = useState(0);
   const [customMessage, setCustomMessage] = useState('');
   const insights = getMoodInsights();
+  const navigate = useNavigate();
   
   const emotionMessages = {
+    down: {
+      title: "It's okay to not be okay",
+      message: 'Your feelings are valid. Would you like to explore some resources that might help?',
+      action: 'See support options'
+    },
+    content: {
+      title: "Glad you're feeling content",
+      message: 'This is a great time to reflect. Journaling can help you understand what brings you contentment.',
+      action: 'Try journaling'
+    },
+    peaceful: {
+      title: 'Embracing the calm',
+      message: 'Peace is a treasure. Let\'s hold onto this feeling with a short, calming activity.',
+      action: 'Start a breathing exercise'
+    },
     happy: {
-      title: 'Great to see you\'re doing well!',
-      message: 'Keep up the positive energy! Consider sharing your good mood with others or journaling about what made you happy today.',
+      title: "Great to see you're doing well!",
+      message: 'Keep up the positive energy! Consider sharing what made you happy today.',
       action: 'Share your happiness'
     },
-    sad: {
-      title: 'We\'re here for you',
-      message: 'It\'s okay to feel this way. Would you like to try a guided meditation or talk to someone?',
-      action: 'Get support now'
-    },
-    anxious: {
-      title: 'Feeling anxious?',
-      message: 'Let\'s take a moment to breathe. Try our 5-minute guided meditation or talk to a counselor.',
-      action: 'Start meditation'
-    },
-    angry: {
-      title: 'Feeling frustrated?',
-      message: 'It\'s okay to feel angry. Let\'s find a healthy way to process these emotions together.',
-      action: 'Calm down'
-    },
-    tired: {
-      title: 'Feeling drained?',
-      message: 'Your well-being matters. Consider taking a break or trying a quick relaxation exercise.',
-      action: 'Relax now'
-    },
-    stressed: {
-      title: 'Stress getting to you?',
-      message: 'You\'re not alone. Let\'s find some strategies to help you manage stress effectively.',
-      action: 'Manage stress'
+    excited: {
+      title: 'Feeling the buzz!',
+      message: 'Excitement is a powerful energy. Let\'s channel it into something creative or productive.',
+      action: 'Explore activities'
     }
   };
 
@@ -147,16 +143,12 @@ export function StudentLanding() {
                   <button 
                     className={styles.messageAction}
                     onClick={() => {
-                      // Handle action based on emotion
-                      if (currentMood === 'sad' || currentMood === 'anxious' || currentMood === 'stressed') {
-                        // Navigate to support or start a meditation
-                        window.location.href = '/student/support';
-                      } else if (currentMood === 'tired') {
-                        // Suggest rest or relaxation
-                        window.location.href = '/student/self-help';
+                      if (currentMood === 'down') {
+                        navigate('/student/support');
+                      } else if (currentMood === 'content' || currentMood === 'peaceful' || currentMood === 'happy' || currentMood === 'excited') {
+                        navigate('/student/self-help');
                       } else {
-                        // Default action
-                        window.location.href = '/student/assessment';
+                        navigate('/student/assessment');
                       }
                     }}
                   >

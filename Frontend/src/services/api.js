@@ -32,19 +32,27 @@ function authHeaders() {
 
 export async function apiPost(path, body, opts={}) {
   try {
-    console.log('API POST:', path, { ...body, password: body?.password ? '***' : undefined });
+    // Don't log sensitive data
+    const logBody = body ? { ...body } : {};
+    if (logBody.password) logBody.password = '***';
+    if (logBody.token) logBody.token = '***';
     
+    console.log('API POST:', path, logBody);
+    
+    const token = getToken();
     const headers = {
       'Content-Type': 'application/json',
-      ...authHeaders(),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...(opts.headers || {})
     };
+    
+    console.log('Request headers:', headers);
     
     const res = await fetch(`${API_BASE}${path}`, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
-      credentials: 'include' // Important for cookies if using them
+      credentials: 'include'
     });
     
     if (res.status === 401) {
@@ -80,6 +88,7 @@ export const AuthAPI = {
 
 export const AppointmentsAPI = {
   book: (payload) => apiPost('/api/appointments/book', payload),
+  getCounselorAppointments: (counselorId) => apiGet(`/api/appointments/counselor/${counselorId}`)
 }
 
 export const FeedbackAPI = {
@@ -129,26 +138,30 @@ const mockAnalyticsData = {
   }
 };
 
-async function apiGet(path, opts = {}) {
-  // Check if this is an analytics endpoint
-  const isAnalyticsEndpoint = path.startsWith('/api/analytics/');
-  
-  // For analytics endpoints, return mock data if not authenticated
-  if (isAnalyticsEndpoint && !getToken()) {
-    console.log('Using mock data for:', path);
-    return Promise.resolve(mockAnalyticsData[path] || {});
-  }
+// Helper function to check if a path is an analytics endpoint
+function isAnalyticsPath(path) {
+  return path.startsWith('/api/analytics/');
+}
 
+export async function apiGet(path, opts = {}) {
+  const isAnalyticsEndpoint = isAnalyticsPath(path);
+  
   try {
+    console.log('API GET:', path);
+    
+    const token = getToken();
     const headers = {
-      ...authHeaders(),
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...(opts.headers || {})
     };
+    
+    console.log('Request headers:', headers);
     
     const res = await fetch(`${API_BASE}${path}`, {
       method: 'GET',
       headers,
-      credentials: 'include' // Important for cookies if using them
+      credentials: 'include'
     });
     
     // For analytics endpoints, don't log out on 401
@@ -157,7 +170,6 @@ async function apiGet(path, opts = {}) {
         console.log('Analytics endpoint returned 401, using mock data');
         return mockAnalyticsData[path] || {};
       }
-      
       // For other endpoints, handle unauthorized
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -196,5 +208,3 @@ async function apiGet(path, opts = {}) {
     throw error;
   }
 }
-
-
